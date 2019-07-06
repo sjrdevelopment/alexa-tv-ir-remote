@@ -14,7 +14,8 @@ const intents = {
   channelDown: 'ChannelDown',
   mute: 'Mute',
   appleTV: 'AppleTV',
-  normalTV: 'NormalTV'
+  normalTV: 'NormalTV',
+  tvGuide: 'TVGuide'
 }
 
 const mqttBrokerUrl = 'mqtt://m24.cloudmqtt.com'
@@ -342,6 +343,42 @@ const NormalTVIntentHandler = {
     })
   },
 }
+
+const TVGuideIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === intents.tvGuide
+  },
+  handle(handlerInput) {
+    const speechText = 'Changing to TV Guide'
+    
+    const talkToMQTT = new Promise(function(resolve, reject) {
+      const client  = mqtt.connect(mqttBrokerUrl, config)
+    
+      client.on('connect', function () {
+        console.log('connected!')
+        client.publish('tvGuide', 'TV Guide')
+        client.end()
+        resolve('success')
+      })
+    
+      client.on('error', error => {
+        console.log('error:')
+        console.log(error)
+      })
+    })
+
+    const responder = handlerInput.responseBuilder
+      .speak(speechText)
+      .withSimpleCard('TV Guide', speechText)
+      .withShouldEndSession(true)
+      .getResponse()
+    
+    return talkToMQTT.then(function(value) {
+      return responder
+    })
+  },
+}
 module.exports = {
     TurnOnIntentHandler: TurnOnIntentHandler,
     TurnOffIntentHandler: TurnOffIntentHandler,
@@ -351,5 +388,6 @@ module.exports = {
     ChannelDownIntentHandler: ChannelDownIntentHandler,
     MuteIntentHandler: MuteIntentHandler,
     AppleTVIntentHandler: AppleTVIntentHandler,
-    NormalTVIntentHandler: NormalTVIntentHandler
+    NormalTVIntentHandler: NormalTVIntentHandler,
+    TVGuideIntentHandler: TVGuideIntentHandler
 }

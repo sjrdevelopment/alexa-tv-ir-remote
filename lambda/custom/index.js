@@ -4,6 +4,8 @@
 const Alexa = require('ask-sdk-core')
 const intentHandlers = require('./intent-handlers.js')
 
+
+
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest'
@@ -90,6 +92,7 @@ exports.handler = skillBuilder
     intentHandlers.MuteIntentHandler,
     intentHandlers.AppleTVIntentHandler,
     intentHandlers.NormalTVIntentHandler,
+    intentHandlers.TVGuideIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
