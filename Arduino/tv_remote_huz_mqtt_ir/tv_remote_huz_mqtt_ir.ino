@@ -41,6 +41,7 @@ Adafruit_MQTT_Subscribe channelDownMsg = Adafruit_MQTT_Subscribe(&mqtt, "channel
 Adafruit_MQTT_Subscribe muteMsg = Adafruit_MQTT_Subscribe(&mqtt, "mute");
 Adafruit_MQTT_Subscribe appleTvMsg = Adafruit_MQTT_Subscribe(&mqtt, "appleTV");
 Adafruit_MQTT_Subscribe normalTvMsg = Adafruit_MQTT_Subscribe(&mqtt, "normalTV");
+Adafruit_MQTT_Subscribe tvGuideMsg = Adafruit_MQTT_Subscribe(&mqtt, "tvGuide");
 
 
 // Bug workaround for Arduino 1.6.6, it seems to need a function declaration
@@ -54,12 +55,14 @@ IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
 long powerCode = 0xE0E040BF;
 long volUpCode = 0xE0E0E01F;
 long volDownCode = 0xE0E0D02F;
+long muteCode = 0xE0E0F00F;
 long channelUpCode = 0xE0E048B7;
 long channelDownCode = 0xE0E008F7;
 long sourceCode = 0xE0E0807F;
 long rightCode = 0xE0E046B9;
 long leftCode = 0xE0E0A659;
 long okCode = 0xE0E016E9;
+long tvGuideCode = 0xE0E0F20D;
 
 void setup() {
   Serial.begin(115200); // TODO: need this?
@@ -89,7 +92,8 @@ void setup() {
   mqtt.subscribe(&channelDownMsg);
   mqtt.subscribe(&muteMsg);
   mqtt.subscribe(&appleTvMsg);
-  mqtt.subscribe(&normalTvMsg);  
+  mqtt.subscribe(&normalTvMsg); 
+  mqtt.subscribe(&tvGuideMsg);  
 
   // IR setup
   irsend.begin();
@@ -136,20 +140,23 @@ void loop() {
         irsend.sendNEC(channelDownCode);
     } else if (subscription == &muteMsg) {
         Serial.print(F("Found mute message (TODO): "));
-        //irsend.sendNEC(muteCode);
+        irsend.sendNEC(muteCode);
+    } else if (subscription == &tvGuideMsg) {
+        Serial.print(F("Found TV guide message (TODO): "));
+        irsend.sendNEC(tvGuideCode);
     } else if (subscription == &appleTvMsg) {
         Serial.print(F("Found Apple TV message: "));
         irsend.sendNEC(sourceCode);
-        delay(500);
+        delay(700);
         irsend.sendNEC(rightCode);
-        delay(500);
+        delay(700);
         irsend.sendNEC(okCode);
     } else if (subscription == &normalTvMsg) {
         Serial.print(F("Found Normal TV message: "));
         irsend.sendNEC(sourceCode);
-        delay(500);
+        delay(700);
         irsend.sendNEC(leftCode);
-        delay(500);
+        delay(700);
         irsend.sendNEC(okCode);
     }else {
       Serial.print(F("Found unknown message"));
