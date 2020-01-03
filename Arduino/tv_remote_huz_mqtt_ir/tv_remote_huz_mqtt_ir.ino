@@ -6,22 +6,12 @@
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
+#include "secret.h"
 
 // IR libs
 #include <Arduino.h>
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
-
-// WIFI details
-#define WLAN_SSID       ""
-#define WLAN_PASS       "" //TODO: put this in header file?
-
-// MQTT Connection details
-#define AIO_SERVER      "m24.cloudmqtt.com" //"io.adafruit.com"
-#define AIO_SERVERPORT  10660 //1883                   // use 8883 for SSL
-#define AIO_USERNAME    "" //
-#define AIO_KEY         "" //
-    
 
 // Create an ESP8266 WiFiClient class to connect to the MQTT server.
 WiFiClient client;
@@ -29,7 +19,7 @@ WiFiClient client;
 //WiFiClientSecure client;
 
 // Setup the MQTT client class by passing in the WiFi client and MQTT server and login details.
-Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_PASS);
 
 Adafruit_MQTT_Subscribe presence = Adafruit_MQTT_Subscribe(&mqtt, "presence");
 Adafruit_MQTT_Subscribe turnOnMsg = Adafruit_MQTT_Subscribe(&mqtt, "turnOn");

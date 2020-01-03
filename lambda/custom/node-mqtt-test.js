@@ -16,7 +16,7 @@ console.log("connecting to client...")
 
 
 exports.handler = async (event) => {
-    // TODO implement
+    // TODO: implement
     
     function talkToMQTT (callback) {
         const client  = mqtt.connect('mqtt://m24.cloudmqtt.com', config)
