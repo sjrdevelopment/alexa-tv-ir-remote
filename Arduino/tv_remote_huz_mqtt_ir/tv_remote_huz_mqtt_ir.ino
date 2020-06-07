@@ -33,14 +33,10 @@ Adafruit_MQTT_Subscribe appleTvMsg = Adafruit_MQTT_Subscribe(&mqtt, "appleTV");
 Adafruit_MQTT_Subscribe normalTvMsg = Adafruit_MQTT_Subscribe(&mqtt, "normalTV");
 Adafruit_MQTT_Subscribe tvGuideMsg = Adafruit_MQTT_Subscribe(&mqtt, "tvGuide");
 
-
-// Bug workaround for Arduino 1.6.6, it seems to need a function declaration
-// for some reason (only affects ESP8266, likely an arduino-builder bug).
 void MQTT_connect();
 
-// GPIO setup for IR
-const uint16_t kIrLed = 4;  // ESP8266 GPIO pin to use. Recommended: 4 (D2).
-IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
+const uint16_t kIrLed = 4;
+IRsend irsend(kIrLed);
 // IR button codes
 long powerCode = 0xE0E040BF;
 long volUpCode = 0xE0E0E01F;
@@ -55,7 +51,7 @@ long okCode = 0xE0E016E9;
 long tvGuideCode = 0xE0E0F20D;
 
 void setup() {
-  Serial.begin(115200); // TODO: need this?
+  Serial.begin(115200);
   delay(10);
 
   // Connect to WiFi access point.
@@ -71,7 +67,8 @@ void setup() {
   Serial.println();
 
   Serial.println("WiFi connected");
-  Serial.println("IP address: "); Serial.println(WiFi.localIP());
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 
   mqtt.subscribe(&presence);
   mqtt.subscribe(&turnOffMsg);
@@ -82,8 +79,8 @@ void setup() {
   mqtt.subscribe(&channelDownMsg);
   mqtt.subscribe(&muteMsg);
   mqtt.subscribe(&appleTvMsg);
-  mqtt.subscribe(&normalTvMsg); 
-  mqtt.subscribe(&tvGuideMsg);  
+  mqtt.subscribe(&normalTvMsg);
+  mqtt.subscribe(&tvGuideMsg);
 
   // IR setup
   irsend.begin();
@@ -97,13 +94,10 @@ void setup() {
 uint32_t x=0;
 
 void loop() {
-  // Ensure the connection to the MQTT server is alive (this will make the first
-  // connection and automatically reconnect when disconnected).  See the MQTT_connect
-  // function definition further below.
   MQTT_connect();
 
   Serial.print(F("waiting..."));
-  
+
   Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(5000))) {
     if (subscription == &presence) {
@@ -114,48 +108,45 @@ void loop() {
       Serial.print(F("Found turn on message: "));
       irsend.sendNEC(powerCode);
     } else if (subscription == &turnOffMsg) {
-        Serial.print(F("Found turn off message: "));
-        irsend.sendNEC(powerCode);
+      Serial.print(F("Found turn off message: "));
+      irsend.sendNEC(powerCode);
     } else if (subscription == &volUpMsg) {
-        Serial.print(F("Found vol up message: "));
-        irsend.sendNEC(volUpCode);
+      Serial.print(F("Found vol up message: "));
+      irsend.sendNEC(volUpCode);
     } else if (subscription == &volDownMsg) {
-        Serial.print(F("Found vol down message: "));
-        irsend.sendNEC(volDownCode);
+      Serial.print(F("Found vol down message: "));
+      irsend.sendNEC(volDownCode);
     } else if (subscription == &channelUpMsg) {
-        Serial.print(F("Found channel up message: "));
-        irsend.sendNEC(channelUpCode);
+      Serial.print(F("Found channel up message: "));
+      irsend.sendNEC(channelUpCode);
     } else if (subscription == &channelDownMsg) {
-        Serial.print(F("Found channel down message: "));
-        irsend.sendNEC(channelDownCode);
+      Serial.print(F("Found channel down message: "));
+      irsend.sendNEC(channelDownCode);
     } else if (subscription == &muteMsg) {
-        Serial.print(F("Found mute message (TODO): "));
-        irsend.sendNEC(muteCode);
+      Serial.print(F("Found mute message (TODO): "));
+      irsend.sendNEC(muteCode);
     } else if (subscription == &tvGuideMsg) {
-        Serial.print(F("Found TV guide message (TODO): "));
-        irsend.sendNEC(tvGuideCode);
+      Serial.print(F("Found TV guide message (TODO): "));
+      irsend.sendNEC(tvGuideCode);
     } else if (subscription == &appleTvMsg) {
-        Serial.print(F("Found Apple TV message: "));
-        irsend.sendNEC(sourceCode);
-        delay(700);
-        irsend.sendNEC(rightCode);
-        delay(700);
-        irsend.sendNEC(okCode);
+      Serial.print(F("Found Apple TV message: "));
+      irsend.sendNEC(sourceCode); // need to 'press' one button at a time
+      delay(700);
+      irsend.sendNEC(rightCode);
+      delay(700);
+      irsend.sendNEC(okCode);
     } else if (subscription == &normalTvMsg) {
-        Serial.print(F("Found Normal TV message: "));
-        irsend.sendNEC(sourceCode);
-        delay(700);
-        irsend.sendNEC(leftCode);
-        delay(700);
-        irsend.sendNEC(okCode);
+      Serial.print(F("Found Normal TV message: ")); // reverse sequence of above
+      irsend.sendNEC(sourceCode);
+      delay(700);
+      irsend.sendNEC(leftCode);
+      delay(700);
+      irsend.sendNEC(okCode);
     }else {
       Serial.print(F("Found unknown message"));
     }
   }
 
-  // ping the server to keep the mqtt connection alive
-  // NOT required if you are publishing once every KEEPALIVE seconds
-  
   if(! mqtt.ping()) {
     mqtt.disconnect();
   }

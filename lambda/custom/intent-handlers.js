@@ -1,4 +1,3 @@
-
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 
@@ -6,388 +5,122 @@ const mqtt = require('mqtt')
 const config = require('./config.js')
 
 const intents = {
-  turnOn: 'TurnOn',
-  turnOff: 'TurnOff',
-  volUp: 'VolUp',
-  volDown: 'VolDown',
-  channelUp: 'ChannelUp',
-  channelDown: 'ChannelDown',
-  mute: 'Mute',
-  appleTV: 'AppleTV',
-  normalTV: 'NormalTV',
-  tvGuide: 'TVGuide'
+  turnOn: {
+    intentName: 'TurnOn',
+    speechText: 'Ok, turning on the TV updated 2',
+    eventName: 'turnOn',
+    eventDescription: 'Turning on',
+  },
+  turnOff: {
+    intentName: 'TurnOff',
+    speechText: 'OK, turning TV off, thanks for watching',
+    eventName: 'turnOff',
+    eventDescription: 'turn off',
+  },
+  volUp: {
+    intentName: 'VolUp',
+    speechText: 'Turning up',
+    eventName: 'volUp',
+    eventDescription: 'turning volume up',
+  },
+  volDown: {
+    intentName: 'VolDown',
+    speechText: 'Turning down',
+    eventName: 'volDown',
+    eventDescription: 'turning volume down',
+  },
+  channelUp: {
+    intentName: 'ChannelUp',
+    speechText: 'Channel up',
+    eventName: 'channelUp',
+    eventDescription: 'channel up',
+  },
+  channelDown: {
+    intentName: 'ChannelDown',
+    speechText: 'Channel down',
+    eventName: 'channelDown',
+    eventDescription: 'channel down',
+  },
+  mute: {
+    intentName: 'Mute',
+    speechText: 'Mute',
+    eventName: 'mute',
+    eventDescription: 'Mute',
+  },
+  appleTV: {
+    intentName: 'AppleTV',
+    speechText: 'Changing to Apple TV',
+    eventName: 'appleTV',
+    eventDescription: 'Apple TV',
+  },
+  normalTV: {
+    intentName: 'NormalTV',
+    speechText: 'Changing to Normal TV',
+    eventName: 'normalTV',
+    eventDescription: 'Normal TV',
+  },
+  tvGuide: {
+    intentName: 'TVGuide',
+    speechText: 'Changing to TV Guide',
+    eventName: 'tvGuide',
+    eventDescription: 'TV Guide',
+  },
 }
 
 const mqttBrokerUrl = 'mqtt://m24.cloudmqtt.com'
 
-const TurnOnIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.turnOn
-  },
-  handle(handlerInput) {
-    const speechText = 'Ok, turning on the TV'
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-      
+const clientEvent = (eventName, eventText) => {
+  return new Promise(function(resolve, reject) {
+    const client  = mqtt.connect(mqttBrokerUrl, config)
 
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('turnOn', 'Turning on')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
+    client.on('connect', function () {
+      console.log('connected!')
+      client.publish(eventName, eventText)
+      client.end()
+      resolve('success')
     })
-      
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('TV On', 'hi')
-      .withShouldEndSession(true)
-      .getResponse()
-      
-    return talkToMQTT.then(function(value) {
-      return responder
+
+    client.on('error', error => {
+      console.log('error:')
+      console.log(error)
     })
-  },
+  })
 }
 
-const TurnOffIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.turnOff
-  },
-  handle(handlerInput) {
-    const speechText = 'OK, turning TV off, thanks for watching!'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('turnOff', 'turn off')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('TV Off', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
+const buildResponse = (handlerInput, speechText) => {
+  return handlerInput.responseBuilder
+    .speak(speechText)
+    .withSimpleCard(speechText)
+    .withShouldEndSession(true)
+    .getResponse()
 }
 
-const VolUpIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.volUp
-  },
-  handle(handlerInput) {
-    const speechText = 'Turning up'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('volUp', 'turning volume up')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
+const remoteActivityIntentHandler = requestedIntent => {
+  return {
+    canHandle(handlerInput) {
+      return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+        && handlerInput.requestEnvelope.request.intent.name === requestedIntent.intentName
+    },
+    handle(handlerInput) {
+      const talkToMQTT = clientEvent(requestedIntent.clientEventName, requestedIntent.clientEventDescription)
+      const responder = buildResponse(handlerInput, requestedIntent.speechText)
 
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Volume Up', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
+      return talkToMQTT.then(() => {
+        return responder
+      })
+    },
+  }
 }
 
-const VolDownIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.volDown
-  },
-  handle(handlerInput) {
-    const speechText = 'Turning down'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('volDown', 'turning volume down')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Volume down', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const ChannelUpIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.channelUp
-  },
-  handle(handlerInput) {
-    const speechText = 'Channel up'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('channelUp', 'channel up')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Channel Up', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const ChannelDownIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.channelDown
-  },
-  handle(handlerInput) {
-    const speechText = 'Channel down'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('channelDown', 'channel down')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Channel Down', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const MuteIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.mute
-  },
-  handle(handlerInput) {
-    const speechText = 'Mute'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('mute', 'Mute')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Mute', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const AppleTVIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.appleTV
-  },
-  handle(handlerInput) {
-    const speechText = 'Changing to Apple TV'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('appleTV', 'Apple TV')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Apple TV', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const NormalTVIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.normalTV
-  },
-  handle(handlerInput) {
-    const speechText = 'Changing to Normal TV'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('normalTV', 'Normal TV')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Normal TV', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
-
-const TVGuideIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === intents.tvGuide
-  },
-  handle(handlerInput) {
-    const speechText = 'Changing to TV Guide'
-    
-    const talkToMQTT = new Promise(function(resolve, reject) {
-      const client  = mqtt.connect(mqttBrokerUrl, config)
-    
-      client.on('connect', function () {
-        console.log('connected!')
-        client.publish('tvGuide', 'TV Guide')
-        client.end()
-        resolve('success')
-      })
-    
-      client.on('error', error => {
-        console.log('error:')
-        console.log(error)
-      })
-    })
-
-    const responder = handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('TV Guide', speechText)
-      .withShouldEndSession(true)
-      .getResponse()
-    
-    return talkToMQTT.then(function(value) {
-      return responder
-    })
-  },
-}
 module.exports = {
-    TurnOnIntentHandler: TurnOnIntentHandler,
-    TurnOffIntentHandler: TurnOffIntentHandler,
-    VolUpIntentHandler: VolUpIntentHandler,
-    VolDownIntentHandler: VolDownIntentHandler,
-    ChannelUpIntentHandler: ChannelUpIntentHandler,
-    ChannelDownIntentHandler: ChannelDownIntentHandler,
-    MuteIntentHandler: MuteIntentHandler,
-    AppleTVIntentHandler: AppleTVIntentHandler,
-    NormalTVIntentHandler: NormalTVIntentHandler,
-    TVGuideIntentHandler: TVGuideIntentHandler
+    TurnOnIntentHandler:remoteActivityIntentHandler(intents.turnOn),
+    TurnOffIntentHandler:remoteActivityIntentHandler(intents.turnOff),
+    VolUpIntentHandler:remoteActivityIntentHandler(intents.volUp),
+    VolDownIntentHandler:remoteActivityIntentHandler(intents.volDown),
+    ChannelUpIntentHandler:remoteActivityIntentHandler(intents.channelUp),
+    ChannelDownIntentHandler:remoteActivityIntentHandler(intents.channelDown),
+    MuteIntentHandler:remoteActivityIntentHandler(intents.mute),
+    AppleTVIntentHandler:remoteActivityIntentHandler(intents.appleTV),
+    NormalTVIntentHandler:remoteActivityIntentHandler(intents.normalTV),
+    TVGuideIntentHandler:remoteActivityIntentHandler(intents.tvGuide),
 }

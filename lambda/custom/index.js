@@ -4,8 +4,6 @@
 const Alexa = require('ask-sdk-core')
 const intentHandlers = require('./intent-handlers.js')
 
-
-
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest'
@@ -20,7 +18,6 @@ const LaunchRequestHandler = {
       .getResponse()
   },
 }
-
 const HelpIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
