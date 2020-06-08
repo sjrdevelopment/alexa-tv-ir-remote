@@ -102,7 +102,7 @@ const remoteActivityIntentHandler = requestedIntent => {
         && handlerInput.requestEnvelope.request.intent.name === requestedIntent.intentName
     },
     handle(handlerInput) {
-      const talkToMQTT = clientEvent(requestedIntent.clientEventName, requestedIntent.clientEventDescription)
+      const talkToMQTT = clientEvent(requestedIntent.eventName, requestedIntent.eventDescription)
       const responder = buildResponse(handlerInput, requestedIntent.speechText)
 
       return talkToMQTT.then(() => {

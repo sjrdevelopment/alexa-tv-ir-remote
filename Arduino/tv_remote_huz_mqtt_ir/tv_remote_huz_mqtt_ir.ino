@@ -100,6 +100,7 @@ void loop() {
 
   Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(5000))) {
+    Serial.print(F("Found domething"));
     if (subscription == &presence) {
       Serial.print(F("Found custom message: "));
       Serial.println((char *)presence.lastread);
