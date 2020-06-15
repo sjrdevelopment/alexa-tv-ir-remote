@@ -1,5 +1,5 @@
 # Alexa TV remote
-### Control a TV using Alexa, using infrared for non-smart TVs
+### Control a TV using Alexa and infrared for non-smart TVs
 
 ## Architecture
 ![](https://github.com/sjrdevelopment/alexa-tv-ir-remote/blob/master/docs/architecture-diagram-tv-remote.png)
