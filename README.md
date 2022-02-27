@@ -9,3 +9,5 @@ This project controls a TV using the infrared codes obtained from decoding the r
 
 ## Lambda and MQTT
 An MQTT broker is required to host the connection between the hardware and the Lambda function that resolves each Alexa interaction with the skill.
+
+Read more - https://medium.com/@stuj.robinson/merging-old-and-new-technology-to-make-a-tv-smarter-cd1bdd3ba62b
